@@ -40,19 +40,24 @@ async fn run() -> Result<()> {
         .await
         .map_err(|e| anyhow!("cannot attach to {}: {}", &dev, e))?;
 
+    let mut data = [0u8; 1];
+    c.read_mem(0xf51a6d, &mut data)
+        .await
+        .map_err(|e| anyhow!("cannot read: {}", e))?;
+    let cur_party = data[0];
+
     let mut data = [0u8; 16];
-    c.read_mem(0xf53000, &mut data)
+    c.read_mem(0xf51850, &mut data)
         .await
         .map_err(|e| anyhow!("cannot read: {}", e))?;
 
     let mut party = [""; 4];
     for i in 0..ACTORS.len() {
-        let party_index = data[i] as usize / 2;
+        let party_num = data[i] & 0x7;
+        let battle_order = (data[i] >> 3) & 0x3;
 
-        if party_index < party.len() {
-            party[party_index] = ACTORS[i];
-        } else if party_index != (0xff / 2) {
-            return Ok(());
+        if party_num == cur_party {
+            party[battle_order as usize] = ACTORS[i];
         }
     }
 
