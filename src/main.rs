@@ -1,5 +1,8 @@
 use anyhow::{anyhow, Result};
+use handlebars::Handlebars;
 use lazy_static::lazy_static;
+use serde_json::json;
+use std::fs::File;
 use usb2snes::Connection;
 
 lazy_static! {
@@ -48,12 +51,25 @@ async fn run() -> Result<()> {
 
         if party_index < party.len() {
             party[party_index] = ACTORS[i];
+        } else if party_index != (0xff / 2) {
+            return Ok(());
         }
     }
 
-    for name in &party {
-        println!("{}", &name);
-    }
+    let mut handlebars = Handlebars::new();
+    handlebars.register_template_file("index", "./index-template.html")?;
+    let mut output_file = File::create("index.html")?;
+    handlebars.render_to_write(
+        "index",
+        &json!({
+        "party0": party[0],
+        "party1": party[1],
+        "party2": party[2],
+        "party3": party[3],
+        }),
+        &mut output_file,
+    )?;
+
     Ok(())
 }
 
