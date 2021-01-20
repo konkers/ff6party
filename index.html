@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+
+<body>
+
+    <div class="party" id="app">
+        <party-member v-for="actor in party" v-bind:actor="actor" v-bind:key="actor.id">
+        </party-member>
+    </div>
+
+    <script src=" index.js">
+    </script>
+</body>
+
+</html>
