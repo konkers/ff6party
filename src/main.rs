@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Result};
-use content::JavaScript;
 use lazy_static::lazy_static;
 use rocket::{
     get,
