@@ -91,7 +91,6 @@ async fn party(
 ) -> std::result::Result<Json<[Actor; 4]>, Debug<anyhow::Error>> {
     let mut lock = c.lock().await;
     let party = get_party(&mut lock).await?;
-    println!("{:?}", &party);
 
     Ok(Json(party))
 }
