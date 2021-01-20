@@ -1,0 +1,1 @@
+Tracker for current FF6 party.  Useful for a stream overlay.
