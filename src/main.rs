@@ -98,19 +98,19 @@ async fn party(
 
 #[get("/")]
 async fn index() -> std::result::Result<content::Html<String>, Debug<anyhow::Error>> {
-    let content = static_file("index.html").await?;
+    let content = static_file("static/index.html").await?;
     Ok(content::Html(content))
 }
 
 #[get("/style.css")]
 async fn style() -> std::result::Result<content::Css<String>, Debug<anyhow::Error>> {
-    let content = static_file("style.css").await?;
+    let content = static_file("static/style.css").await?;
     Ok(content::Css(content))
 }
 
 #[get("/index.js")]
 async fn js() -> std::result::Result<content::JavaScript<String>, Debug<anyhow::Error>> {
-    let content = static_file("index.js").await?;
+    let content = static_file("static/index.js").await?;
     Ok(content::JavaScript(content))
 }
 
