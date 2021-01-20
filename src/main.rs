@@ -133,6 +133,8 @@ pub async fn main() -> Result<()> {
         .mount("/", routes![index, style, js, party])
         .launch();
 
+    println!("tracker started at http://127.0.0.1:8000");
+
     tokio::select! {
         res = web => {
             println!("res: {:?}", res);
