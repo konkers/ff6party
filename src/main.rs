@@ -1,15 +1,21 @@
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
+use log::error;
 use rocket::{
     get,
     response::{content, Debug},
-    routes,
-    tokio::{self, fs::File, io::AsyncReadExt, sync::Mutex},
-    State,
+    routes, State,
 };
 use rocket_contrib::json::Json;
 use serde::Serialize;
 use std::{path::Path, sync::Arc};
+use tokio::{
+    self,
+    fs::File,
+    io::AsyncReadExt,
+    sync::Mutex,
+    time::{sleep, Duration},
+};
 use usb2snes::Connection;
 
 lazy_static! {
@@ -112,15 +118,18 @@ async fn js() -> std::result::Result<content::JavaScript<String>, Debug<anyhow::
     Ok(content::JavaScript(content))
 }
 
-#[tokio::main]
-pub async fn main() -> Result<()> {
+async fn run() -> Result<()> {
     let mut c = Connection::new("ws://localhost:8080")
         .await
-        .map_err(|e| anyhow!("cannot connect: {}", e))?;
+        .map_err(|e| anyhow!("cannot connect to usb2snes service: {}", e))?;
     let devs = c
         .get_device_list()
         .await
-        .map_err(|e| anyhow!("cannot get device list: {}", e))?;
+        .map_err(|e| anyhow!("cannot get usb2snes device list: {}", e))?;
+
+    if devs.len() == 0 {
+        return Err(anyhow!("No usb2snes devices connected."));
+    }
     let dev = devs[0].to_string();
 
     c.attach(&dev)
@@ -135,9 +144,20 @@ pub async fn main() -> Result<()> {
     println!("tracker started at http://127.0.0.1:8000");
 
     tokio::select! {
-        res = web => {
-            println!("res: {:?}", res);
+        _ = web => {
         }
     }
+    Ok(())
+}
+#[tokio::main]
+pub async fn main() -> Result<()> {
+    env_logger::init();
+
+    if let Err(e) = run().await {
+        error!("{}", e);
+        error!("Waiting 5 seconds before closing");
+        sleep(Duration::from_secs(5)).await;
+    }
+
     Ok(())
 }
