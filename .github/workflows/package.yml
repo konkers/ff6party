@@ -25,7 +25,14 @@ jobs:
 
       - name: Setup Environment
         run: |
-          ./.github/workflows/env-setup.sh
+          ./.github/workflows/env-setup.sh CREATE_RELEASE >> $GITHUB_ENV
+          ./.github/workflows/env-setup.sh ARTIFACT_SUFFIX >> $GITHUB_ENV
+        shell: bash
+
+      - name: show Environment
+        run: |
+          echo $CREATE_RELEASE
+          echo $ARTIFACT_SUFFIX
         shell: bash
 
       - name: install stable toolchain
@@ -76,7 +83,8 @@ jobs:
 
       - name: Setup Environment
         run: |
-          ./.github/workflows/env-setup.sh
+          ./.github/workflows/env-setup.sh CREATE_RELEASE >> $GITHUB_ENV
+          ./.github/workflows/env-setup.sh ARTIFACT_SUFFIX >> $GITHUB_ENV
         shell: bash
 
       - name: Create release
