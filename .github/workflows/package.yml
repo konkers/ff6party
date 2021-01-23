@@ -1,0 +1,92 @@
+# Heavily based on druid's workflow at
+#   https://github.com/xi-editor/druid/blob/76fba835605aa1c51e4f541d6a08ff94542f9b0a/.github/workflows/ci.yml
+
+name: Package
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build_package:
+    needs: create_release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2019]
+    name: package app
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Environment
+        run: |
+          ./.github/workflows/env-setup.sh
+        shell: bash
+
+      - name: install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy
+          profile: minimal
+          override: true
+
+      - name: build release
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: build windows package
+        if: contains(matrix.os, 'windows')
+        run: ./package.sh
+        shell: bash
+
+
+      - name: upload windows package
+        if: contains(matrix.os, 'windows')
+        uses: actions/upload-artifact@v2
+        with:
+          name: ff6party-win${{env.ARTIFACT_SUFFIX}}.zip
+          path: target/package/ff6party.zip
+
+      - name: upload windows release artifact
+        if: contains(matrix.os, 'windows') && env.CREATE_RELEASE == 'true'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_name: ff6party-win${{env.ARTIFACT_SUFFIX}}.msi
+          asset_path: target/package/ff6party.zip
+          asset_content_type: application/octet-stream
+
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Environment
+        run: |
+          ./.github/workflows/env-setup.sh
+        shell: bash
+
+      - name: Create release
+        if: env.CREATE_RELEASE == 'true'
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Pollendina ${{ github.ref }}
+          draft: false
+          prerelease: true
